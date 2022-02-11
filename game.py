@@ -108,7 +108,7 @@ def set_game_state(game_state):
 # --------------------------- Init ------------------------------------
 # Create the game window
 GAME = tk.Tk()
-GAME.attributes("-fullscreen", False)
+GAME.attributes("-fullscreen", True)
 GAME.bind("<Escape>", quit_game)
 GAME.bind("<Control-Key-1>", exit_game)
 
