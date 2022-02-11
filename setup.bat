@@ -12,6 +12,8 @@ curl.exe -o requirements.txt https://raw.githubusercontent.com/DivingMad/Bingo/m
 
 pip install -r requirements.txt
 
+echo python game.py>game.bat
+
 mkdir pieces
 cd pieces
 curl.exe -o king.jpg https://raw.githubusercontent.com/DivingMad/Bingo/main/pieces/king.jpg
