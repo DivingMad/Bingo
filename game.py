@@ -122,7 +122,7 @@ RULES.bind("<Key>", lambda event: change_game_state("rules", RULES.get("1.0", "e
 # Create official noteboard
 PUB_NOTES = tk.Text(GAME, bg="white", width=1, height=1, cursor="arrow")
 PUB_NOTES.grid(row=1, column=1, sticky=tk.NSEW)
-.bind("<Key>", lambda event: change_game_state("rules", PUB_NOTES.get("1.0", "end-1c")))
+PUB_NOTES.bind("<Key>", lambda event: change_game_state("rules", PUB_NOTES.get("1.0", "end-1c")))
 
 # Create private noteboard
 PRIVATE_NOTES = tk.Text(GAME, bg="white", width=1, height=1, cursor="arrow")
