@@ -16,9 +16,9 @@ import time
 # --------------------- Constants -----------------------------
 ROWS = 12
 COLS = 12
-PLAYER = 1
+PLAYER = -1
 PIECES = []
-URL = "http://127.0.0.1:5000/"
+URL = "https://divingmad.pythonanywhere.com/"
 
 # ---------------------- Bound functions ---------------------
 def throw_dice():
@@ -29,30 +29,37 @@ def throw_dice():
     DICE.insert("1.0", "Dice shows: " + str(number))
     DICE.configure(state="disabled")
 
-    change_game_state("dice", "Dice shows: " + str(number))
-
 def next_turn():
-    change_game_state("player", PLAYER*(-1))
+    game_state = {}
+    game_state["player"] = PLAYER*(-1)
+    game_state["rules"] = RULES.get("1.0", "end-1c")
+    game_state["pub_notes"] = PUB_NOTES.get("1.0", "end-1c")
+    game_state["dice"] = DICE.get("1.0", "end-1c")
+
+    game_state["piece_positions"] = ""
+    for piece, piece_name in PIECES:
+        x, y = BOARD.coords(piece)
+        game_state["piece_positions"] += f"{x} {y} {piece_name}\n"
+
+    requests.post(URL+"change-state", data=game_state)
     BOARD.quit()
 
-def add_piece(piece_text=None):
-    change = False
+def add_piece(piece_text=None, position=None):
     if piece_text is None:
-        change = True
         piece_text = PIECE_ENTRY.get()
-    piece = BOARD.create_image(0, 0, image=PIECE_IMAGES[piece_text])
+    if position is None:
+        piece = BOARD.create_image(0, 0, image=PIECE_IMAGES[piece_text])
+    else:
+        piece = BOARD.create_image(*position, image=PIECE_IMAGES[piece_text])
 
-    PIECES.append(piece)
-
-    if change:
-        change_game_state("new_piece", piece_text)
+    PIECES.append((piece, piece_text))
 
 def drag_piece(event):
     closest = None
     min_dist = 70
     eventx, eventy = event.x, event.y
 
-    for piece in PIECES:
+    for piece, _ in PIECES:
         piecex, piecey = BOARD.coords(piece)
         dist = ((piecex - eventx)**2 + (piecey - eventy)**2)**0.5
         if dist < min_dist:
@@ -60,12 +67,9 @@ def drag_piece(event):
             closest = piece
     if closest is not None:
         BOARD.coords(closest, (eventx, eventy))
-        change_game_state("piece_position", f"{eventx} {eventy} {closest}")
 
 def exit_game(event):
-    change_game_state("rules", RULES.get("1.0", "end"))
     t = requests.get(URL+"end-game")
-    print("exit_game", t.status_code)
 
     GAME.destroy()
     sys.exit()
@@ -74,32 +78,37 @@ def quit_game(event):
     GAME.destroy()
     sys.exit()
 
-def change_game_state(key, change):
-    t = requests.post(URL+"change-state", data={"key": key, "change": change})
-    print("change_game_state:", t.status_code)
-
 def set_game_state(game_state):
+    global PIECES
     RULES.delete("1.0", "end")
     RULES.insert("1.0", game_state["rules"])
 
     PUB_NOTES.delete("1.0", "end")
     PUB_NOTES.insert("1.0", game_state["pub_notes"])
 
+    DICE.configure(state="normal")
     DICE.delete("1.0", "end")
     DICE.insert("1.0", game_state["dice"])
+    DICE.configure(state="disabled")
 
-    if game_state["new_piece"] != "none":
-        add_piece(game_state["new_piece"])
+    for piece, _ in PIECES:
+        BOARD.delete(piece)
+    PIECES = []
 
-    if game_state["piece_position"] != "none":
-        piecepos = game_state["piece_position"].split(" ")
-        BOARD.coords(int(piecepos[2]), (int(piecepos[0]), int(piecepos[1])))
+    piece_positions = game_state["piece_positions"]
+    if piece_positions != "none":
+        for piece_text in piece_positions.split("\n"):
+            piece_list = piece_text.split(" ")
+            if len(piece_list) != 3:
+                continue
+            x, y, piece_name = piece_list[0], piece_list[1], piece_list[2]
+            add_piece(piece_text=piece_name, position=(int(float(x)), int(float(y))))
 
 
 # --------------------------- Init ------------------------------------
 # Create the game window
 GAME = tk.Tk()
-GAME.attributes("-fullscreen", True)
+GAME.attributes("-fullscreen", False)
 GAME.bind("<Escape>", quit_game)
 GAME.bind("<Control-Key-1>", exit_game)
 
@@ -117,12 +126,10 @@ GAME.rowconfigure(5, weight=0) # Buttons
 # Create rule box with rules
 RULES = tk.Text(GAME, bg="grey", width=1, height=1, cursor="circle")
 RULES.grid(row=0, column=1, sticky=tk.NSEW)
-RULES.bind("<Key>", lambda event: change_game_state("rules", RULES.get("1.0", "end-1c")))
 
 # Create official noteboard
 PUB_NOTES = tk.Text(GAME, bg="white", width=1, height=1, cursor="arrow")
 PUB_NOTES.grid(row=1, column=1, sticky=tk.NSEW)
-PUB_NOTES.bind("<Key>", lambda event: change_game_state("rules", PUB_NOTES.get("1.0", "end-1c")))
 
 # Create private noteboard
 PRIVATE_NOTES = tk.Text(GAME, bg="white", width=1, height=1, cursor="arrow")
@@ -164,7 +171,7 @@ for col in range(COLS):
         BOARD.create_line(xpos, 0, xpos, HEIGHT)
 
 #Pieces
-image_king = Image.open("pieces/kung.jpg").resize((int(WIDTH/(COLS*2)), int(HEIGHT/ROWS)))
+image_king = Image.open("pieces/king.jpg").resize((int(WIDTH/(COLS*2)), int(HEIGHT/ROWS)))
 image_thresh = Image.open("pieces/thresh.jpg").resize((int(WIDTH/(COLS*2)), int(HEIGHT/ROWS)))
 image_assassin = Image.open("pieces/assassin.jpg").resize((int(WIDTH/(COLS*2)), int(HEIGHT/ROWS)))
 image_tank = Image.open("pieces/tank.jpg").resize((int(WIDTH/(COLS*2)), int(HEIGHT/ROWS)))
@@ -184,16 +191,16 @@ def wait_loop():
     player_turn = PLAYER*(-1)
 
     while player_turn != PLAYER:
-        time.sleep(0.2)
+        time.sleep(1)
         server_response = requests.get(URL+"get-state")
 
         if server_response.status_code != 200:
             raise Exception(f"Server responded with {server_response}")
 
         game_state = server_response.json()
-        print(game_state)
-        set_game_state(game_state)
         player_turn = int(game_state["player"])
+        print(player_turn, PLAYER)
+    set_game_state(game_state)
 
 if __name__=="__main__":
     while True:
