@@ -1,8 +1,3 @@
-"""This is the user side script which runs the GUI of the board game.
-
-- Create last server side
-- Test server side
-"""
 # -------------------------- Imports ----------------------------------
 import tkinter as tk
 import random
@@ -171,10 +166,10 @@ for col in range(COLS):
         BOARD.create_line(xpos, 0, xpos, HEIGHT)
 
 #Pieces
-image_king = Image.open("pieces/king.jpg").resize((int(WIDTH/(COLS*2)), int(HEIGHT/ROWS)))
-image_thresh = Image.open("pieces/thresh.jpg").resize((int(WIDTH/(COLS*2)), int(HEIGHT/ROWS)))
-image_assassin = Image.open("pieces/assassin.jpg").resize((int(WIDTH/(COLS*2)), int(HEIGHT/ROWS)))
-image_tank = Image.open("pieces/tank.jpg").resize((int(WIDTH/(COLS*2)), int(HEIGHT/ROWS)))
+image_king = Image.open("pieces/king.jpg").resize((int(WIDTH/(COLS*2)), int(HEIGHT/(ROWS*2))))
+image_thresh = Image.open("pieces/thresh.jpg").resize((int(WIDTH/(COLS*2)), int(HEIGHT/(ROWS*2))))
+image_assassin = Image.open("pieces/assassin.jpg").resize((int(WIDTH/(COLS*2)), int(HEIGHT/(ROWS*2))))
+image_tank = Image.open("pieces/tank.jpg").resize((int(WIDTH/(COLS*2)), int(HEIGHT/(ROWS*2))))
 PIECE_IMAGES = {
     "wking": ImageTk.PhotoImage(image_king),
     "bking": ImageTk.PhotoImage(image_king.rotate(180)),
