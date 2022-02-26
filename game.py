@@ -2,7 +2,6 @@
 import tkinter as tk
 import random
 import requests
-import joblib
 from PIL import ImageTk, Image
 import sys
 import time
