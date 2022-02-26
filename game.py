@@ -64,6 +64,8 @@ def drag_piece(event):
         BOARD.coords(closest, (eventx, eventy))
 
 def exit_game(event):
+    next_turn()
+
     t = requests.get(URL+"end-game")
 
     GAME.destroy()
@@ -170,6 +172,7 @@ image_king = Image.open("pieces/king.jpg").resize((int(WIDTH/(COLS*2)), int(HEIG
 image_thresh = Image.open("pieces/thresh.jpg").resize((int(WIDTH/(COLS*2)), int(HEIGHT/(ROWS*2))))
 image_assassin = Image.open("pieces/assassin.jpg").resize((int(WIDTH/(COLS*2)), int(HEIGHT/(ROWS*2))))
 image_tank = Image.open("pieces/tank.jpg").resize((int(WIDTH/(COLS*2)), int(HEIGHT/(ROWS*2))))
+image_ranged = Image.open("pieces/ranged.jpg").resize((int(WIDTH/(COLS*2)), int(HEIGHT/(ROWS*2))))
 PIECE_IMAGES = {
     "wking": ImageTk.PhotoImage(image_king),
     "bking": ImageTk.PhotoImage(image_king.rotate(180)),
@@ -179,6 +182,8 @@ PIECE_IMAGES = {
     "bassassin": ImageTk.PhotoImage(image_assassin.rotate(180)),
     "wtank": ImageTk.PhotoImage(image_tank),
     "btank": ImageTk.PhotoImage(image_tank.rotate(180)),
+    "wranged": ImageTk.PhotoImage(image_ranged),
+    "branged": ImageTk.PhotoImage(image_ranged.rotate(180)),
 }
 
 # ------------------------ Main Loop -------------------------------------
@@ -194,10 +199,11 @@ def wait_loop():
 
         game_state = server_response.json()
         player_turn = int(game_state["player"])
-        print(player_turn, PLAYER)
+        print(player_turn)
     set_game_state(game_state)
 
 if __name__=="__main__":
+    requests.get(URL+"start-game")
     while True:
         wait_loop()
         GAME.mainloop()
