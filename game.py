@@ -41,10 +41,18 @@ def next_turn():
 def add_piece(piece_text=None, position=None):
     if piece_text is None:
         piece_text = PIECE_ENTRY.get()
-    if position is None:
-        piece = BOARD.create_image(0, 0, image=PIECE_IMAGES[piece_text])
+
+    piece_img = Image.open(f"pieces/{piece_text[1:]}.jpg").resize((int(WIDTH/(COLS*2)), int(HEIGHT/(ROWS*2))))
+    if piece_text[0] == "b":
+        piece_img = ImageTk.PhotoImage(piece_img.rotate(180))
     else:
-        piece = BOARD.create_image(*position, image=PIECE_IMAGES[piece_text])
+        piece_img = ImageTk.PhotoImage(piece_img)
+
+
+    if position is None:
+        piece = BOARD.create_image(0, 0, image=piece_img)
+    else:
+        piece = BOARD.create_image(*position, image=piece_img)
 
     PIECES.append((piece, piece_text))
 
