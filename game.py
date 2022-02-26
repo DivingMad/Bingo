@@ -2,6 +2,7 @@
 import tkinter as tk
 import random
 import requests
+import joblib
 from PIL import ImageTk, Image
 import sys
 import time
@@ -41,18 +42,10 @@ def next_turn():
 def add_piece(piece_text=None, position=None):
     if piece_text is None:
         piece_text = PIECE_ENTRY.get()
-
-    piece_img = Image.open(f"pieces/{piece_text[1:]}.jpg").resize((int(WIDTH/(COLS*2)), int(HEIGHT/(ROWS*2))))
-    if piece_text[0] == "b":
-        piece_img = ImageTk.PhotoImage(piece_img.rotate(180))
-    else:
-        piece_img = ImageTk.PhotoImage(piece_img)
-
-
     if position is None:
-        piece = BOARD.create_image(0, 0, image=piece_img)
+        piece = BOARD.create_image(0, 0, image=PIECE_IMAGES[piece_text])
     else:
-        piece = BOARD.create_image(*position, image=piece_img)
+        piece = BOARD.create_image(*position, image=PIECE_IMAGES[piece_text])
 
     PIECES.append((piece, piece_text))
 
@@ -180,6 +173,7 @@ image_thresh = Image.open("pieces/thresh.jpg").resize((int(WIDTH/(COLS*2)), int(
 image_assassin = Image.open("pieces/assassin.jpg").resize((int(WIDTH/(COLS*2)), int(HEIGHT/(ROWS*2))))
 image_tank = Image.open("pieces/tank.jpg").resize((int(WIDTH/(COLS*2)), int(HEIGHT/(ROWS*2))))
 image_ranged = Image.open("pieces/ranged.jpg").resize((int(WIDTH/(COLS*2)), int(HEIGHT/(ROWS*2))))
+image_mage = Image.open("pieces/mage.jpg").resize((int(WIDTH/(COLS*2)), int(HEIGHT/(ROWS*2))))
 PIECE_IMAGES = {
     "wking": ImageTk.PhotoImage(image_king),
     "bking": ImageTk.PhotoImage(image_king.rotate(180)),
@@ -191,6 +185,8 @@ PIECE_IMAGES = {
     "btank": ImageTk.PhotoImage(image_tank.rotate(180)),
     "wranged": ImageTk.PhotoImage(image_ranged),
     "branged": ImageTk.PhotoImage(image_ranged.rotate(180)),
+    "wmage": ImageTk.PhotoImage(image_mage),
+    "bmage": ImageTk.PhotoImage(image_mage.rotate(180)),
 }
 
 # ------------------------ Main Loop -------------------------------------
@@ -210,7 +206,6 @@ def wait_loop():
     set_game_state(game_state)
 
 if __name__=="__main__":
-    requests.get(URL+"start-game")
     while True:
         wait_loop()
         GAME.mainloop()
