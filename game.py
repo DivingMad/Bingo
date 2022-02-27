@@ -2,10 +2,10 @@
 import tkinter as tk
 import random
 import requests
-import joblib
 from PIL import ImageTk, Image
 import sys
 import time
+import os
 
 
 # --------------------- Constants -----------------------------
@@ -168,30 +168,19 @@ for col in range(COLS):
         BOARD.create_line(xpos, 0, xpos, HEIGHT)
 
 #Pieces
-image_king = Image.open("pieces/king.jpg").resize((int(WIDTH/(COLS*2)), int(HEIGHT/(ROWS*2))))
-image_thresh = Image.open("pieces/thresh.jpg").resize((int(WIDTH/(COLS*2)), int(HEIGHT/(ROWS*2))))
-image_assassin = Image.open("pieces/assassin.jpg").resize((int(WIDTH/(COLS*2)), int(HEIGHT/(ROWS*2))))
-image_tank = Image.open("pieces/tank.jpg").resize((int(WIDTH/(COLS*2)), int(HEIGHT/(ROWS*2))))
-image_ranged = Image.open("pieces/ranged.jpg").resize((int(WIDTH/(COLS*2)), int(HEIGHT/(ROWS*2))))
-image_mage = Image.open("pieces/mage.jpg").resize((int(WIDTH/(COLS*2)), int(HEIGHT/(ROWS*2))))
-PIECE_IMAGES = {
-    "wking": ImageTk.PhotoImage(image_king),
-    "bking": ImageTk.PhotoImage(image_king.rotate(180)),
-    "wthresh": ImageTk.PhotoImage(image_thresh),
-    "bthresh": ImageTk.PhotoImage(image_thresh.rotate(180)),
-    "wassassin": ImageTk.PhotoImage(image_assassin),
-    "bassassin": ImageTk.PhotoImage(image_assassin.rotate(180)),
-    "wtank": ImageTk.PhotoImage(image_tank),
-    "btank": ImageTk.PhotoImage(image_tank.rotate(180)),
-    "wranged": ImageTk.PhotoImage(image_ranged),
-    "branged": ImageTk.PhotoImage(image_ranged.rotate(180)),
-    "wmage": ImageTk.PhotoImage(image_mage),
-    "bmage": ImageTk.PhotoImage(image_mage.rotate(180)),
-}
+PIECE_IMAGES = {}
+for piece_img_name in os.listdir("pieces"):
+    piece_img =  Image.open(f"pieces/{piece_img_name}").resize((int(WIDTH/(COLS*2)), int(HEIGHT/(ROWS*2))))
+    piece_name = piece_img_name.split(".")[0]
+    PIECE_IMAGES[f"w{piece_name}"] = ImageTk.PhotoImage(piece_img)
+    PIECE_IMAGES[f"b{piece_name}"] = ImageTk.PhotoImage(piece_img.rotate(180))
 
 # ------------------------ Main Loop -------------------------------------
 def wait_loop():
     player_turn = PLAYER*(-1)
+
+    server_response = requests.get(URL+"get-state")
+    game_state = server_response.json()
 
     while player_turn != PLAYER:
         time.sleep(1)
