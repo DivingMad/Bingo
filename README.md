@@ -1,2 +1,2 @@
 # Bingo
-***An online server based board game***
+*An online server based board game*
